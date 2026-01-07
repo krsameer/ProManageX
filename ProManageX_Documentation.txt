@@ -1,0 +1,605 @@
+================================================================================
+                    ProManageX - Issue Tracking System
+                         Technical Documentation
+================================================================================
+
+PROJECT OVERVIEW:
+-----------------
+ProManageX is a full-stack MERN (MongoDB, Express, React, Node.js) application
+designed for collaborative issue tracking and project management. It provides
+teams with tools to create projects, manage issues, assign tasks, and visualize
+workflow using an interactive Kanban board.
+
+================================================================================
+TECHNOLOGY STACK:
+================================================================================
+
+FRONTEND:
+---------
+✓ React 18.x                 - UI framework for building interactive components
+✓ React Router v6            - Client-side routing for navigation
+✓ Tailwind CSS               - Utility-first CSS framework for styling
+✓ react-beautiful-dnd        - Library for drag-and-drop Kanban functionality
+✓ Axios                      - HTTP client for API requests
+✓ React Context API          - State management for global auth/user data
+✓ React Hooks                - useState, useEffect, useContext for component logic
+
+BACKEND:
+--------
+✓ Node.js                    - JavaScript runtime environment
+✓ Express.js v4.x            - Web framework for building REST APIs
+✓ MongoDB                    - NoSQL database for flexible data storage
+✓ Mongoose v7.x              - ODM (Object Data Modeling) for MongoDB
+✓ JWT (jsonwebtoken)         - Token-based authentication mechanism
+✓ Bcryptjs                   - Password hashing and encryption
+✓ Dotenv                     - Environment variable management
+✓ CORS                       - Cross-Origin Resource Sharing middleware
+
+DATABASE:
+---------
+✓ MongoDB Atlas / Local      - Document-based database
+✓ Collections: Users, Projects, Issues, Comments, ActivityLogs
+
+================================================================================
+PROJECT ARCHITECTURE & CODE FLOW:
+================================================================================
+
+1. USER AUTHENTICATION FLOW:
+   ────────────────────────
+
+   SIGNUP:
+   ├─ User submits email, password, name
+   ├─ Backend validates input
+   ├─ Password hashed using bcryptjs
+   ├─ User document created in MongoDB
+   ├─ JWT token generated
+   └─ Token sent to frontend, stored in localStorage
+
+   LOGIN:
+   ├─ User submits credentials
+   ├─ Backend queries Users collection
+   ├─ Password compared with hashed password
+   ├─ JWT token generated on success
+   └─ Token sent to frontend for authenticated requests
+
+   TOKEN VERIFICATION:
+   ├─ Frontend sends JWT in Authorization header
+   ├─ Backend middleware (authMiddleware) verifies token
+   ├─ User info extracted from decoded token
+   └─ Request proceeds or returns 401 Unauthorized
+
+
+2. PROJECT MANAGEMENT FLOW:
+   ────────────────────────
+
+   CREATE PROJECT:
+   ├─ User (Admin) fills project name, description, members
+   ├─ Request sent to POST /api/projects
+   ├─ Backend validates user is authenticated
+   ├─ Project document created with admin as creator
+   ├─ Team members array populated with selected users
+   ├─ Project saved to MongoDB
+   └─ Response sent with project ID and details
+
+   ADD TEAM MEMBERS:
+   ├─ Admin selects users to add to project
+   ├─ PATCH /api/projects/:projectId/members
+   ├─ Backend validates admin privileges
+   ├─ Team members array updated in MongoDB
+   └─ Activity log entry created (optional)
+
+   VIEW PROJECT DASHBOARD:
+   ├─ Fetch project details from GET /api/projects/:projectId
+   ├─ Fetch all issues for project
+   ├─ Calculate metrics: total issues, by status, by priority
+   ├─ Display team members and their task distribution
+   └─ Render interactive dashboard with charts
+
+
+3. ISSUE MANAGEMENT FLOW:
+   ──────────────────────
+
+   CREATE ISSUE:
+   ├─ User fills: title, description, priority, status, assignee
+   ├─ POST /api/issues request sent with projectId
+   ├─ Backend validates authentication and project access
+   ├─ Issue document created with:
+   │  ├─ creator: current user
+   │  ├─ assignee: selected team member
+   │  ├─ priority: Low/Medium/High/Critical
+   │  ├─ status: To-Do (default)
+   │  ├─ tags: array of custom labels
+   │  └─ timestamps: createdAt, updatedAt
+   ├─ Activity log entry created
+   └─ Issue ID returned to frontend
+
+   UPDATE ISSUE:
+   ├─ User modifies issue details or status
+   ├─ PATCH /api/issues/:issueId
+   ├─ Backend validates user is assignee or admin
+   ├─ Issue document updated in MongoDB
+   ├─ Activity log entry records: who changed, what changed, when
+   └─ Updated issue sent to frontend
+
+   UPDATE VIA KANBAN (Drag-and-Drop):
+   ├─ User drags issue card to new column
+   ├─ react-beautiful-dnd captures the drag event
+   ├─ New status determined from target column
+   ├─ PATCH /api/issues/:issueId (status: "In-Progress")
+   ├─ Backend updates database instantly
+   ├─ Activity log records status change
+   └─ UI updates with real-time confirmation
+
+   DELETE ISSUE:
+   ├─ Admin/Creator initiates deletion
+   ├─ DELETE /api/issues/:issueId
+   ├─ Backend validates permissions
+   ├─ Issue document removed from MongoDB
+   ├─ Associated comments and activity logs deleted
+   └─ Kanban board updated without deleted issue
+
+
+4. KANBAN BOARD FLOW:
+   ──────────────────
+
+   LOAD KANBAN:
+   ├─ User navigates to project's Kanban board
+   ├─ Frontend fetches all issues for project
+   ├─ Issues grouped by status:
+   │  ├─ To-Do
+   │  ├─ In-Progress
+   │  ├─ Review
+   │  └─ Done
+   ├─ react-beautiful-dnd initializes with columns
+   └─ Cards rendered with issue title, priority color, assignee
+
+   DRAG AND DROP:
+   ├─ User clicks and drags issue card
+   ├─ react-beautiful-dnd detects drag start
+   ├─ Visual feedback: card slightly raised, column highlights
+   ├─ User drops card in different column
+   ├─ onDragEnd callback triggered
+   ├─ New status extracted from destination column
+   ├─ API call: PATCH /api/issues/:issueId (status: new_status)
+   ├─ Backend updates database
+   ├─ Activity log created: "Issue moved from To-Do to In-Progress"
+   ├─ Frontend updates local state
+   └─ Kanban board reflects change instantly
+
+   PRIORITY COLORING:
+   ├─ Low: Green background
+   ├─ Medium: Yellow background
+   ├─ High: Orange background
+   └─ Critical: Red background
+
+
+5. COMMENTS & ACTIVITY LOG FLOW:
+   ─────────────────────────────
+
+   ADD COMMENT:
+   ├─ User types comment on issue detail page
+   ├─ POST /api/issues/:issueId/comments
+   ├─ Backend creates comment object:
+   │  ├─ author: current user
+   │  ├─ text: comment content
+   │  └─ timestamp: creation time
+   ├─ Comment saved to issue's comments array
+   └─ Comment displayed in thread
+
+   ACTIVITY LOG:
+   ├─ Every action triggers activity log entry:
+   │  ├─ Issue created
+   │  ├─ Status changed (To-Do → In-Progress)
+   │  ├─ Priority updated (Medium → High)
+   │  ├─ Assignee changed (John → Sarah)
+   │  └─ Comment added
+   ├─ Each entry contains:
+   │  ├─ action: type of change
+   │  ├─ changedBy: user who made change
+   │  ├─ oldValue: previous value
+   │  ├─ newValue: updated value
+   │  └─ timestamp: when change occurred
+   └─ Activity log displayed as timeline in issue detail
+
+
+6. ANALYTICS DASHBOARD FLOW:
+   ──────────────────────────
+
+   FETCH METRICS:
+   ├─ GET /api/projects/:projectId/analytics
+   ├─ Backend queries Issues collection for project
+   ├─ Calculate:
+   │  ├─ Total Issues: count all issues
+   │  ├─ By Status: count(To-Do), count(In-Progress), count(Review), count(Done)
+   │  ├─ By Priority: count(Low), count(Medium), count(High), count(Critical)
+   │  └─ Member Distribution: issues per team member
+   └─ Data aggregated using MongoDB aggregation pipeline
+
+   RENDER DASHBOARD:
+   ├─ Frontend receives aggregated data
+   ├─ Display pie/bar charts:
+   │  ├─ Issues by Status (pie chart)
+   │  ├─ Issues by Priority (pie chart)
+   │  └─ Tasks per Member (bar chart)
+   ├─ Show key metrics as cards:
+   │  ├─ Total Issues
+   │  ├─ Completed Issues
+   │  ├─ In-Progress Issues
+   │  └─ Overdue Issues
+   └─ Charts update in real-time as issues change
+
+================================================================================
+BACKEND CODE STRUCTURE:
+================================================================================
+
+models/
+├─ User.js
+│  └─ Fields: email, password, name, role, createdAt
+│
+├─ Project.js
+│  └─ Fields: name, description, creator, members[], createdAt
+│
+├─ Issue.js
+│  └─ Fields: title, description, priority, status, projectId, assignee,
+│              creator, tags[], comments[], createdAt, updatedAt
+│
+├─ Comment.js
+│  └─ Fields: issueId, author, text, createdAt
+│
+└─ ActivityLog.js
+   └─ Fields: issueId, action, changedBy, oldValue, newValue, timestamp
+
+
+routes/
+├─ authRoutes.js
+│  ├─ POST /auth/signup
+│  └─ POST /auth/login
+│
+├─ projectRoutes.js
+│  ├─ POST /projects (create)
+│  ├─ GET /projects/:id (get single)
+│  ├─ GET /projects (get user's projects)
+│  ├─ PATCH /projects/:id (update)
+│  ├─ DELETE /projects/:id (delete)
+│  └─ PATCH /projects/:id/members (add members)
+│
+├─ issueRoutes.js
+│  ├─ POST /issues (create)
+│  ├─ GET /issues?projectId=xxx (get by project)
+│  ├─ GET /issues/:id (get single)
+│  ├─ PATCH /issues/:id (update)
+│  ├─ DELETE /issues/:id (delete)
+│  └─ PATCH /issues/:id/status (quick status update)
+│
+└─ analyticsRoutes.js
+   └─ GET /projects/:id/analytics
+
+
+controllers/
+├─ authController.js
+│  ├─ signup() - validate, hash password, create user, generate JWT
+│  └─ login() - validate, compare password, generate JWT
+│
+├─ projectController.js
+│  ├─ createProject() - validate input, save to DB
+│  ├─ getProject() - fetch from DB, verify access
+│  ├─ updateProject() - validate, update, save
+│  ├─ deleteProject() - remove from DB
+│  └─ addMembers() - add users to team
+│
+├─ issueController.js
+│  ├─ createIssue() - validate, save, create activity log
+│  ├─ getIssues() - fetch by project, return all
+│  ├─ updateIssue() - update fields, create activity log for changes
+│  ├─ deleteIssue() - remove issue and related data
+│  └─ updateStatus() - quick status update from Kanban
+│
+└─ analyticsController.js
+   └─ getAnalytics() - aggregate data, return metrics
+
+
+middleware/
+├─ authMiddleware.js
+│  └─ verifyToken() - check JWT, attach user to request
+│
+└─ errorHandler.js
+   └─ Global error handling
+
+
+================================================================================
+FRONTEND CODE STRUCTURE:
+================================================================================
+
+pages/
+├─ LoginPage.js
+│  └─ Form for user login, sends credentials to backend
+│
+├─ SignupPage.js
+│  └─ Registration form, creates new user account
+│
+├─ DashboardPage.js
+│  └─ Shows user's projects and quick stats
+│
+├─ ProjectPage.js
+│  └─ Project overview, team members, project settings
+│
+├─ KanbanPage.js
+│  └─ Main Kanban board with drag-and-drop
+│
+└─ AnalyticsPage.js
+   └─ Charts and metrics for project
+
+
+components/
+├─ Navbar.js
+│  └─ Navigation bar with logout
+│
+├─ KanbanBoard.js
+│  ├─ Uses react-beautiful-dnd for drag-drop
+│  ├─ Columns: To-Do, In-Progress, Review, Done
+│  └─ onDragEnd handler updates API
+│
+├─ IssueCard.js
+│  ├─ Displays issue title, priority, assignee
+│  ├─ Color-coded by priority
+│  └─ Click to open details modal
+│
+├─ IssueModal.js
+│  ├─ Edit issue details
+│  ├─ View/add comments
+│  ├─ View activity log
+│  └─ Delete issue option
+│
+├─ ProjectForm.js
+│  └─ Create/edit project details
+│
+├─ TeamMembersList.js
+│  └─ Display and manage team members
+│
+└─ AnalyticsDashboard.js
+   ├─ Charts library (Chart.js or Recharts)
+   └─ Display metrics visually
+
+
+utils/
+├─ api.js
+│  └─ Axios instance with token in headers
+│  └─ All API endpoint functions
+│
+├─ constants.js
+│  ├─ Priority levels
+│  ├─ Status values
+│  └─ Color mappings
+│
+└─ auth.js
+   ├─ Token storage/retrieval
+   └─ Authentication helpers
+
+
+context/
+└─ AuthContext.js
+   ├─ Global user state
+   ├─ isAuthenticated flag
+   └─ Token management
+
+
+================================================================================
+DATA FLOW EXAMPLE: Creating and Moving an Issue
+================================================================================
+
+STEP 1: USER CREATES ISSUE IN UI
+─────────────────────────────────
+User Form (IssueModal.js)
+  │
+  └─> Form Input: title="Fix Login Bug", priority="High", assignee="Sarah"
+      │
+      └─> onSubmit() handler
+          │
+          └─> API call: POST /api/issues
+              │
+              └─> Request body:
+                  {
+                    projectId: "proj123",
+                    title: "Fix Login Bug",
+                    priority: "High",
+                    status: "To-Do",
+                    assignee: "sarah_id"
+                  }
+
+
+STEP 2: BACKEND RECEIVES AND PROCESSES
+──────────────────────────────────────
+Express Server (issueRoutes.js)
+  │
+  └─> POST /api/issues route
+      │
+      └─> issueController.createIssue()
+          │
+          ├─> Validate input and authentication
+          ├─> Create Issue document in MongoDB:
+          │   {
+          │     _id: ObjectId,
+          │     projectId: "proj123",
+          │     title: "Fix Login Bug",
+          │     priority: "High",
+          │     status: "To-Do",
+          │     assignee: "sarah_id",
+          │     creator: "john_id",
+          │     createdAt: 2025-12-08T10:30:00Z
+          │   }
+          │
+          ├─> Create ActivityLog entry:
+          │   {
+          │     issueId: "issue456",
+          │     action: "created",
+          │     changedBy: "john_id",
+          │     timestamp: 2025-12-08T10:30:00Z
+          │   }
+          │
+          └─> Return response with issue data
+
+
+STEP 3: FRONTEND RECEIVES AND DISPLAYS
+──────────────────────────────────────
+React Component (KanbanPage.js)
+  │
+  └─> API response received
+      │
+      └─> Update state: issues = [...issues, newIssue]
+          │
+          └─> KanbanBoard component re-renders
+              │
+              └─> Issue card appears in "To-Do" column
+                  {
+                    title: "Fix Login Bug",
+                    priority: "High" (Red background),
+                    assignee: "Sarah"
+                  }
+
+
+STEP 4: USER DRAGS ISSUE TO "IN-PROGRESS"
+──────────────────────────────────────────
+react-beautiful-dnd (KanbanBoard.js)
+  │
+  ├─> onDragStart: User picks up card
+  │
+  ├─> onDragOver: Card moves over columns
+  │
+  └─> onDragEnd: User drops card in new column
+      │
+      └─> onDragEnd handler executes:
+          │
+          ├─> Get dragged issue ID: "issue456"
+          ├─> Get source column: "To-Do"
+          ├─> Get destination column: "In-Progress"
+          │
+          └─> API call: PATCH /api/issues/issue456
+              │
+              └─> Request body:
+                  {
+                    status: "In-Progress"
+                  }
+
+
+STEP 5: BACKEND UPDATES DATABASE
+────────────────────────────────
+Express Server (issueController.js)
+  │
+  └─> PATCH /api/issues/:issueId
+      │
+      └─> updateIssue() function
+          │
+          ├─> Find issue in MongoDB
+          ├─> Detect change: status "To-Do" → "In-Progress"
+          │
+          ├─> Update issue:
+          │   {
+          │     status: "In-Progress",
+          │     updatedAt: 2025-12-08T10:35:00Z
+          │   }
+          │
+          ├─> Create ActivityLog entry:
+          │   {
+          │     issueId: "issue456",
+          │     action: "status_changed",
+          │     changedBy: "john_id",
+          │     oldValue: "To-Do",
+          │     newValue: "In-Progress",
+          │     timestamp: 2025-12-08T10:35:00Z
+          │   }
+          │
+          └─> Return updated issue
+
+
+STEP 6: FRONTEND UPDATES UI
+───────────────────────────
+React Component (KanbanPage.js)
+  │
+  └─> API response received
+      │
+      ├─> Update local state: issues[0].status = "In-Progress"
+      │
+      └─> KanbanBoard re-renders
+          │
+          └─> Issue card removed from "To-Do" column
+          └─> Issue card appears in "In-Progress" column
+
+
+================================================================================
+ENVIRONMENT VARIABLES (.env example)
+================================================================================
+
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/promanagex
+JWT_SECRET=your_super_secret_jwt_key_here_min_32_chars
+JWT_EXPIRE=7d
+
+BACKEND_PORT=5000
+FRONTEND_URL=http://localhost:3000
+
+NODE_ENV=development
+
+================================================================================
+API ENDPOINT SUMMARY
+================================================================================
+
+AUTHENTICATION:
+POST   /api/auth/signup          - Register new user
+POST   /api/auth/login           - Login user
+
+PROJECTS:
+POST   /api/projects             - Create project
+GET    /api/projects             - Get user's projects
+GET    /api/projects/:id         - Get specific project
+PATCH  /api/projects/:id         - Update project
+DELETE /api/projects/:id         - Delete project
+PATCH  /api/projects/:id/members - Add team members
+
+ISSUES:
+POST   /api/issues               - Create issue
+GET    /api/issues               - Get issues by project
+GET    /api/issues/:id           - Get specific issue
+PATCH  /api/issues/:id           - Update issue
+DELETE /api/issues/:id           - Delete issue
+
+COMMENTS:
+POST   /api/issues/:id/comments  - Add comment
+
+ANALYTICS:
+GET    /api/projects/:id/analytics - Get project metrics
+
+================================================================================
+HOW TO RUN
+================================================================================
+
+BACKEND:
+1. npm install
+2. Create .env file with MongoDB URI and JWT secret
+3. npm start (runs on http://localhost:5000)
+
+FRONTEND:
+1. npm install
+2. Create .env with REACT_APP_API_URL=http://localhost:5000
+3. npm start (runs on http://localhost:3000)
+
+DATABASE:
+- MongoDB Atlas (cloud) or local MongoDB instance
+- Database name: promanagex
+
+================================================================================
+KEY FEATURES IMPLEMENTATION
+================================================================================
+
+✓ JWT Authentication    - Token-based stateless authentication
+✓ Role-Based Access     - Admin/Member permissions enforced in backend
+✓ Drag-and-Drop         - react-beautiful-dnd library integration
+✓ Real-time Updates     - Instant API calls and UI updates
+✓ Activity Tracking     - Complete history of all changes
+✓ Comments             - Thread-based discussions per issue
+✓ Analytics            - MongoDB aggregation for metrics
+✓ Data Validation      - Input validation on both frontend and backend
+✓ Error Handling       - Global error middleware in backend
+✓ Security             - Password hashing, JWT verification, CORS
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
