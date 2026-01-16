@@ -16,8 +16,9 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
-            <Link to="/projects" className="text-2xl font-bold text-primary-600">
-              ProManageX
+            <Link to="/projects" className="flex items-center gap-2">
+              <img src="/logo.jpeg" alt="ProManageX Logo" className="h-10 w-auto" />
+              <span className="text-2xl font-bold text-primary-600">ProManageX</span>
             </Link>
             <div className="hidden md:flex gap-4">
               <Link
