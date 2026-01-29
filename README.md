@@ -213,9 +213,9 @@ After running the seed script, you can login with these accounts:
 - Password: `admin123`
 
 **Member Accounts:**
-- Email: `john@promanagex.com` / Password: `john123`
-- Email: `jane@promanagex.com` / Password: `jane123`
-- Email: `bob@promanagex.com` / Password: `bob123`
+- Email: `kumarsameer@promanagex.com` / Password: `kumarsameer123`
+- Email: `kunaltiwari@promanagex.com` / Password: `kunaltiwari123`
+- Email: `shapunpoonja@promanagex.com` / Password: `shapunpoonja123`
 
 ## API Endpoints
 
@@ -272,8 +272,8 @@ curl -X POST http://localhost:5000/api/auth/register \
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "john@example.com",
-    "password": "password123"
+    "email": "admin@promanagex.com",
+    "password": "admin123"
   }'
 ```
 
