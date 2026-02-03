@@ -20,7 +20,7 @@ const createActivity = async (issueId, userId, action, description, field = '', 
 // @access  Private
 exports.createIssue = async (req, res) => {
   try {
-    const { title, description, project, priority, assignee, tags } = req.body;
+    const { title, description, project, priority, assignee, tags, estimatedHours, startDate, dueDate } = req.body;
 
     // Verify user has access to project
     const projectDoc = await Project.findById(project);
@@ -48,7 +48,10 @@ exports.createIssue = async (req, res) => {
       assignee: assignee || null,
       reporter: req.user.id,
       tags: tags || [],
-      position
+      position,
+      estimatedHours: estimatedHours || null,
+      startDate: startDate || null,
+      dueDate: dueDate || null
     });
 
     const populatedIssue = await Issue.findById(issue._id)
@@ -160,7 +163,7 @@ exports.updateIssue = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { title, description, status, priority, assignee, tags } = req.body;
+    const { title, description, status, priority, assignee, tags, estimatedHours, loggedHours, startDate, dueDate, finishDate } = req.body;
 
     // Track changes for activity log
     if (status && status !== issue.status) {
@@ -201,10 +204,30 @@ exports.updateIssue = async (req, res) => {
       );
     }
 
+    // Auto-set finishDate when status changes to Done
+    let autoFinishDate = finishDate;
+    if (status === 'Done' && issue.status !== 'Done' && !finishDate) {
+      autoFinishDate = new Date();
+    } else if (status !== 'Done') {
+      autoFinishDate = null;
+    }
+
     // Update issue
     issue = await Issue.findByIdAndUpdate(
       req.params.id,
-      { title, description, status, priority, assignee: assignee || null, tags },
+      { 
+        title, 
+        description, 
+        status, 
+        priority, 
+        assignee: assignee || null, 
+        tags,
+        estimatedHours: estimatedHours !== undefined ? estimatedHours : issue.estimatedHours,
+        loggedHours: loggedHours !== undefined ? loggedHours : issue.loggedHours,
+        startDate: startDate !== undefined ? startDate : issue.startDate,
+        dueDate: dueDate !== undefined ? dueDate : issue.dueDate,
+        finishDate: autoFinishDate !== undefined ? autoFinishDate : issue.finishDate
+      },
       { new: true, runValidators: true }
     )
       .populate('assignee', 'name email avatar')
