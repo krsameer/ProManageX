@@ -44,6 +44,29 @@ const issueSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // Time tracking fields
+  estimatedHours: {
+    type: Number,
+    default: null,
+    min: 0
+  },
+  loggedHours: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  startDate: {
+    type: Date,
+    default: null
+  },
+  dueDate: {
+    type: Date,
+    default: null
+  },
+  finishDate: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
