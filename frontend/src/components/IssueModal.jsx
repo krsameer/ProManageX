@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { issueAPI, authAPI } from '../utils/api';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiClock, FiCalendar } from 'react-icons/fi';
 
 const IssueModal = ({ projectId, initialStatus, issue, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +9,11 @@ const IssueModal = ({ projectId, initialStatus, issue, onClose, onSuccess }) => 
     priority: 'Medium',
     status: initialStatus || 'To-Do',
     assignee: '',
-    tags: ''
+    tags: '',
+    estimatedHours: '',
+    loggedHours: '',
+    startDate: '',
+    dueDate: ''
   });
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +27,11 @@ const IssueModal = ({ projectId, initialStatus, issue, onClose, onSuccess }) => 
         priority: issue.priority,
         status: issue.status,
         assignee: issue.assignee?._id || '',
-        tags: issue.tags?.join(', ') || ''
+        tags: issue.tags?.join(', ') || '',
+        estimatedHours: issue.estimatedHours || '',
+        loggedHours: issue.loggedHours || '',
+        startDate: issue.startDate ? issue.startDate.split('T')[0] : '',
+        dueDate: issue.dueDate ? issue.dueDate.split('T')[0] : ''
       });
     }
   }, [issue]);
@@ -50,7 +58,11 @@ const IssueModal = ({ projectId, initialStatus, issue, onClose, onSuccess }) => 
       ...formData,
       project: projectId,
       tags: tagsArray,
-      assignee: formData.assignee || null
+      assignee: formData.assignee || null,
+      estimatedHours: formData.estimatedHours ? parseFloat(formData.estimatedHours) : null,
+      loggedHours: formData.loggedHours ? parseFloat(formData.loggedHours) : 0,
+      startDate: formData.startDate || null,
+      dueDate: formData.dueDate || null
     };
 
     try {
@@ -170,6 +182,74 @@ const IssueModal = ({ projectId, initialStatus, issue, onClose, onSuccess }) => 
               className="input"
               placeholder="e.g. frontend, bug, urgent"
             />
+          </div>
+
+          {/* Time Tracking Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <FiClock className="mr-2" />
+              Time Tracking
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Estimated Hours
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formData.estimatedHours}
+                  onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
+                  className="input"
+                  placeholder="e.g. 8"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Logged Hours
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  value={formData.loggedHours}
+                  onChange={(e) => setFormData({ ...formData, loggedHours: e.target.value })}
+                  className="input"
+                  placeholder="e.g. 4.5"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FiCalendar className="inline mr-1" />
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FiCalendar className="inline mr-1" />
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  className="input"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">

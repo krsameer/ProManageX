@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { issueAPI, commentAPI } from '../utils/api';
-import { FiX, FiEdit2, FiTrash2, FiClock, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { FiX, FiEdit2, FiTrash2, FiClock, FiUser, FiMessageSquare, FiCalendar, FiCheckCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
 import IssueModal from './IssueModal';
 
@@ -174,6 +174,81 @@ const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
                   {format(new Date(issue.updatedAt), 'MMM dd, yyyy HH:mm')}
                 </p>
               </div>
+            </div>
+
+            {/* Time Tracking Section */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <FiClock className="mr-2" />
+                Time Tracking
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Estimated</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {issue.estimatedHours ? `${issue.estimatedHours}h` : '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Logged</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {issue.loggedHours ? `${issue.loggedHours}h` : '0h'}
+                  </p>
+                  {issue.estimatedHours && issue.loggedHours > 0 && (
+                    <div className="mt-1">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            (issue.loggedHours / issue.estimatedHours) > 1 
+                              ? 'bg-red-500' 
+                              : 'bg-green-500'
+                          }`}
+                          style={{ width: `${Math.min((issue.loggedHours / issue.estimatedHours) * 100, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {Math.round((issue.loggedHours / issue.estimatedHours) * 100)}% used
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    <FiCalendar className="inline mr-1" />
+                    Start Date
+                  </p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {issue.startDate ? format(new Date(issue.startDate), 'MMM dd, yyyy') : '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    <FiCalendar className="inline mr-1" />
+                    Due Date
+                  </p>
+                  <p className={`text-sm font-medium ${
+                    issue.dueDate && new Date(issue.dueDate) < new Date() && issue.status !== 'Done'
+                      ? 'text-red-600'
+                      : 'text-gray-800'
+                  }`}>
+                    {issue.dueDate ? format(new Date(issue.dueDate), 'MMM dd, yyyy') : '-'}
+                    {issue.dueDate && new Date(issue.dueDate) < new Date() && issue.status !== 'Done' && (
+                      <span className="text-red-500 text-xs ml-1">(Overdue)</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {issue.finishDate && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-1">
+                    <FiCheckCircle className="inline mr-1 text-green-500" />
+                    Completed
+                  </p>
+                  <p className="text-sm font-medium text-green-600">
+                    {format(new Date(issue.finishDate), 'MMM dd, yyyy HH:mm')}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Tabs */}
