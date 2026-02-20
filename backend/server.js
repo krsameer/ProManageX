@@ -13,7 +13,9 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://promanagex.vercel.app"
+    "https://promanagex.vercel.app",
+    "https://promanagex-nx1stisgg-kumar-sameers-projects.vercel.app"
+
   ],
   credentials: true
 }));
