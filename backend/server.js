@@ -11,12 +11,27 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://promanagex.vercel.app",
-    "https://promanagex-nx1stisgg-kumar-sameers-projects.vercel.app"
-
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost')) return callback(null, true);
+    
+    // Allow any Vercel deployment
+    if (origin.includes('vercel.app')) return callback(null, true);
+    
+    // Allow specific production domain if you have one
+    const allowedOrigins = [
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(null, true); // Allow all origins for now (can restrict later)
+  },
   credentials: true
 }));
 app.use(express.json());
