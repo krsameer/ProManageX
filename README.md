@@ -2,6 +2,8 @@
 
 A full-stack MERN (MongoDB, Express, React, Node.js) issue tracking and project management system with an interactive Kanban board, real-time updates, and comprehensive analytics.
 
+This web app is live and can be visited on - https://promanagex.vercel.app/login
+
 ## Features
 
 ### Authentication & Authorization
