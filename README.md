@@ -8,6 +8,12 @@
 
 ![ProjectScreen](screenshots/ProjectScreen.png)
 
+### Frontend
+
+![Frontend](screenshots/Frontend.png)
+
+
+
 
 # ProManageX - Issue Tracking System
 
