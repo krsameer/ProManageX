@@ -4,6 +4,10 @@
 
 ![LoginScreen](screenshots/LoginScreen.png)
 
+### ProjectScreen
+
+![ProjectScreen](screenshots/ProjectScreen.png)
+
 
 # ProManageX - Issue Tracking System
 
