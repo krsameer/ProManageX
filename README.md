@@ -14,8 +14,11 @@
 
 ### Backend
 
-![Frontend](screenshots/Backend.png)
+![Backend](screenshots/Backend.png)
 
+### Db
+
+![Db](screenshots/Db.png)
 
 # ProManageX - Issue Tracking System
 
