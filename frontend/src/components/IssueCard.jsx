@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FiAlertCircle, FiUser, FiTag, FiCalendar, FiClock } from 'react-icons/fi';
 import { format, isPast, isToday } from 'date-fns';
 import IssueDetailModal from './IssueDetailModal';
+import { motion } from 'framer-motion';
 
 const IssueCard = ({ issue, onUpdate }) => {
   const [showDetail, setShowDetail] = useState(false);
@@ -25,8 +26,10 @@ const IssueCard = ({ issue, onUpdate }) => {
 
   return (
     <>
-      <div
+      <motion.div
         onClick={() => setShowDetail(true)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.995 }}
         className={`bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer ${
           dueDateStatus === 'overdue' ? 'border-red-300' : 'border-gray-200'
         }`}
@@ -105,7 +108,7 @@ const IssueCard = ({ issue, onUpdate }) => {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {showDetail && (
         <IssueDetailModal
