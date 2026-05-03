@@ -3,6 +3,8 @@ import { issueAPI, commentAPI } from '../utils/api';
 import { FiX, FiEdit2, FiTrash2, FiClock, FiUser, FiMessageSquare, FiCalendar, FiCheckCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
 import IssueModal from './IssueModal';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
   const [issue, setIssue] = useState(null);
@@ -46,8 +48,10 @@ const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
       });
       setNewComment('');
       fetchIssueDetails();
+      toast.success('Comment added');
     } catch (error) {
       console.error('Error adding comment:', error);
+      toast.error('Error adding comment');
     }
   };
 
@@ -55,9 +59,11 @@ const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
     if (window.confirm('Are you sure you want to delete this issue?')) {
       try {
         await issueAPI.deleteIssue(issueId);
+        toast.success('Issue deleted');
         onUpdate();
       } catch (error) {
         console.error('Error deleting issue:', error);
+        toast.error('Error deleting issue');
       }
     }
   };
@@ -78,18 +84,18 @@ const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
 
   if (loading || !issue) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white rounded-lg p-8">
           <div className="text-xl">Loading...</div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 300 }} className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="p-6 border-b flex justify-between items-start">
             <div className="flex-1">
@@ -343,8 +349,8 @@ const IssueDetailModal = ({ issueId, onClose, onUpdate }) => {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {showEditModal && (
         <IssueModal
